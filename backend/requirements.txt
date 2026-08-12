@@ -1,0 +1,73 @@
+# ============================================================
+# PlacementPilot — Backend Dependencies
+# Phase 0 & 1 (Setup, Ingestion & Chunking)
+# ============================================================
+# To install: pip install -r requirements.txt
+# To regenerate (after adding packages): pip freeze > requirements.txt
+#
+# Phase 2+ will add: pgvector, asyncpg/psycopg2, sentence-transformers
+# or openai-embedding client, rank-bm25. Do NOT add those here yet.
+# ============================================================
+
+# --------------------------------------------------
+# Web framework
+# --------------------------------------------------
+fastapi==0.141.1
+uvicorn==0.52.1          # ASGI server (includes [standard] extras below)
+starlette==1.6.0         # FastAPI's underlying ASGI framework
+python-multipart==0.0.32 # Required for file upload endpoints (Phase 6)
+
+# --------------------------------------------------
+# Document parsing (Phase 1)
+# --------------------------------------------------
+pdfplumber==0.11.10      # PDF text extraction
+pdfminer.six==20260107   # pdfplumber dependency (PDF parsing engine)
+pypdfium2==5.12.1        # pdfplumber dependency (PDF rendering)
+python-docx==1.2.0       # DOCX text extraction
+
+# --------------------------------------------------
+# Data validation
+# --------------------------------------------------
+pydantic==2.13.4
+pydantic_core==2.46.4
+
+# --------------------------------------------------
+# HTTP client (used in integration tests, Phase 6 API tests)
+# --------------------------------------------------
+httpx==0.28.1
+
+# --------------------------------------------------
+# Testing
+# --------------------------------------------------
+pytest==9.1.1
+pytest-asyncio==1.4.0
+
+# --------------------------------------------------
+# Transitive dependencies (pinned for reproducibility)
+# --------------------------------------------------
+annotated-doc==0.0.5
+annotated-types==0.8.0
+anyio==4.14.2
+certifi==2026.7.22
+cffi==2.1.1
+charset-normalizer==3.5.0
+click==8.4.2
+colorama==0.4.6
+cryptography==50.0.0
+h11==0.16.0
+httpcore==1.0.9
+httptools==0.8.0
+idna==3.18
+iniconfig==2.3.0
+lxml==6.1.1
+packaging==26.3
+pillow==12.3.0
+pluggy==1.6.0
+pycparser==3.0
+Pygments==2.20.0
+python-dotenv==1.2.2
+PyYAML==6.0.3
+typing-inspection==0.4.4
+typing_extensions==4.16.0
+watchfiles==1.2.0
+websockets==17.0.1
