@@ -1,0 +1,57 @@
+# PlacementPilot
+
+Grounded AI resume-to-JD gap analysis that tells you when it doesn't know,
+not when it's guessing.
+
+PlacementPilot compares a candidate's resume against a target job
+description using Retrieval-Augmented Generation (RAG), highlights skill
+gaps, suggests areas for improvement, and generates 5–20 role-specific
+interview questions — while refusing to answer when there isn't enough
+retrieved context to support a confident claim.
+
+## Why this exists
+
+Most resume-analysis demos will confidently generate advice even when they
+don't have enough information — which means a student could end up
+preparing for the wrong skills. PlacementPilot is built around a stricter
+rule: **answer only from retrieved context, and say "not enough context"
+instead of guessing.**
+
+## How it works
+
+1. Resume and job description text are converted to embeddings
+2. Embeddings are stored in a vector database (pgvector)
+3. On analysis, the system retrieves relevant context via hybrid
+   (semantic + keyword) search
+4. The LLM generates a gap analysis using *only* the retrieved context —
+   with a post-generation check to catch anything ungrounded
+
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full system design and
+[`DECISIONS.md`](./DECISIONS.md) for the reasoning behind key choices
+(embedding model, vector store, hybrid retrieval, guardrails).
+
+## Project docs
+
+| File | Purpose |
+|---|---|
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | System design, data flow, components |
+| [`PLAN.md`](./PLAN.md) | Milestones and build roadmap |
+| [`RULES.md`](./RULES.md) | Engineering constraints (grounding, data handling, eval) |
+| [`DECISIONS.md`](./DECISIONS.md) | Rationale log for key technical decisions |
+| [`SETUP.md`](./SETUP.md) | Local dev setup instructions |
+
+## Tech stack
+
+- **Backend:** Python (FastAPI)
+- **Vector DB:** pgvector (Postgres)
+- **Embeddings:** sentence-embedding model (see `DECISIONS.md`)
+- **LLM:** Claude / GPT via API, grounded retrieval only
+- **Frontend:** React
+
+## Status
+
+🚧 In active development — see [`PLAN.md`](./PLAN.md) for current milestone.
+
+## License
+
+MIT
