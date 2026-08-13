@@ -1,8 +1,3 @@
-# Ignore all markdown files except README.md and docs/ABOUT.md
-*.md
-!README.md
-!docs/ABOUT.md
-
 # Environment secrets — never commit
 .env
 
