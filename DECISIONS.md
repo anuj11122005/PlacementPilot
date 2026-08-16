@@ -75,16 +75,15 @@ retrieval.
 
 ### D5. Post-generation verifier layer
 
-**Decision:** Add a lightweight verification pass after generation, checking
-that claims map back to retrieved chunks.
+**Decision:** Add a lightweight Verification Layer (using `llama-3.1-8b-instant`) after generation. It checks if the generated `gap_summary` claims are strictly grounded in the retrieved chunks without inferential leaps.
 
 **Why:**
-- Prompt instructions reduce but don't eliminate hallucination risk
-- A second, narrower check (is this claim grounded — yes/no) is a much
-  easier task for a model than "generate a perfect gap analysis," and thus
-  more reliable
-- This layered approach (retrieval gating + prompt constraint + post-hoc
-  verification) is what separates this from a single-prompt demo
+- Prompt instructions reduce but don't eliminate hallucination risk (e.g., inferring "proficiency" when a tool is merely listed).
+- We use a strict Natural Language Inference (NLI) prompt. The verifier attempts to rewrite the claim to strip ungrounded adjectives (Option B).
+- If the rewritten claim is empty or malformed, it falls back to a hard refusal (`"Not enough context..."`) and logs the fallback.
+- This layered approach (retrieval gating + prompt constraint + post-hoc verification) separates this from a single-prompt demo.
+
+**Trade-off acknowledged (Correlated Blind-Spot):** We are using the exact same model (`llama-3.1-8b-instant`) for both generation and verification. If the model has a fundamental reasoning blind-spot or bias, it may hallucinate during generation and then fail to catch its own hallucination during verification. In a higher-stakes production system, the verifier should ideally be a different, orthogonal model (e.g., Claude 3.5 Sonnet verifying Llama 3) to break this correlation.
 
 ---
 
@@ -95,3 +94,26 @@ path. This system optimizes for knowing when it doesn't know — every layer
 (retrieval confidence, prompt constraints, post-generation verification)
 exists to catch and surface uncertainty rather than paper over it with a
 confident-sounding LLM output.
+
+---
+
+### D7. LLM Provider Choice (Phase 4)
+
+**Decision:** Use Groq (`llama-3.1-8b-instant`) via the `openai` Python package (using Groq's OpenAI-compatible base URL).
+
+**Why:**
+- Extremely fast inference (latency is near instantaneous), which is critical for a smooth user experience in Phase 6.
+- Very low cost (generous free tier), making it ideal for a student project running the 15-case eval set repeatedly.
+- The `llama-3.1-8b-instant` model follows hard grounding constraints and JSON formatting well enough for this use case.
+
+---
+
+### D8. Standardized Refusal String
+
+**Decision:** The exact string returned when context is insufficient is:
+`"Not enough context to evaluate this."`
+
+**Why:**
+- Having a single, exact string acts as a contract between the backend and the frontend (Phase 6).
+- The frontend can programmatically detect this exact string to render a specific "missing info" UI state rather than treating it as normal prose.
+- This string is returned universally whenever the retriever confidence fails OR when the LLM deems the retrieved context insufficient.
