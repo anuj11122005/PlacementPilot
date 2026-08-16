@@ -58,7 +58,7 @@ Frontend runs at `http://localhost:5173` (or as configured).
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/placementpilot
 LLM_API_KEY=your_key_here
 EMBEDDING_MODEL=your_model_name_here
-RETRIEVAL_CONFIDENCE_THRESHOLD=0.6
+RETRIEVAL_CONFIDENCE_THRESHOLD=0.40
 ```
 
 ## 6. Running the eval set

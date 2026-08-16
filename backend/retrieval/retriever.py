@@ -88,15 +88,15 @@ class HybridRetriever:
         confidence = top_1_score
         
         # Section Bonus: Soft skills often score lower semantically, give them a small boost
-        if top_chunk_section in ["experience", "summary"]:
-            confidence += 0.05
+        section_bonus = 0.05 if top_chunk_section in ["experience", "summary"] else 0.0
+        confidence += section_bonus
             
         # BM25 Bonus: Exact keyword match saves niche technical terms
         bm25_bonus = 0.15 if top_results[0]["bm25_score"] > 1.0 else 0.0
         confidence += bm25_bonus
         
         logger.debug(f"Query: '{query}' | Top Chunk: {top_chunk_section} | Top1: {top_1_score:.3f}")
-        logger.debug(f"BM25 Bonus: {bm25_bonus:.3f} | Final Conf: {confidence:.3f}")
+        logger.debug(f"Section Bonus: {section_bonus:.3f} | BM25 Bonus: {bm25_bonus:.3f} | Final Conf: {confidence:.3f}")
         
         is_confident = confidence >= RETRIEVAL_CONFIDENCE_THRESHOLD
         
@@ -106,6 +106,7 @@ class HybridRetriever:
             "is_confident": is_confident,
             "metrics": {
                 "top_1_similarity": top_1_score,
+                "section_bonus": section_bonus,
                 "bm25_bonus": bm25_bonus
             }
         }
