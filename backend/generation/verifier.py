@@ -6,6 +6,8 @@ from groq import Groq
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_MODEL = "openai/gpt-oss-120b"
+
 class ClaimVerifier:
     """
     A strict fact-checker that verifies if a generated gap summary is grounded
@@ -41,7 +43,7 @@ Respond STRICTLY in JSON format with exactly these keys:
             raise RuntimeError("Groq client not initialized. Is GROQ_API_KEY set?")
         self.client = Groq(api_key=api_key)
         self.temperature = temperature
-        self.model = "llama-3.1-8b-instant"
+        self.model = DEFAULT_MODEL
 
     def verify(self, gap_summary: str, chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
         """

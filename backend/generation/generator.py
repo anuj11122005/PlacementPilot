@@ -7,6 +7,8 @@ from groq import Groq, APIError, APITimeoutError, RateLimitError
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_MODEL = "openai/gpt-oss-120b"
+
 class GroundedGenerator:
     """
     Generation layer that takes retrieved chunks and generates a gap analysis
@@ -15,7 +17,7 @@ class GroundedGenerator:
 
     REFUSAL_STRING = "Not enough context to evaluate this."
 
-    def __init__(self, model: str = "llama-3.1-8b-instant", temperature: float = 0.1):
+    def __init__(self, model: str = DEFAULT_MODEL, temperature: float = 0.1):
         self.model = model
         self.temperature = temperature
         # Initialize Groq client. Requires GROQ_API_KEY in environment.
