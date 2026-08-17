@@ -2,11 +2,6 @@
 
 The backend pipeline is now completely integrated and tested for the edge cases requested. Here's a breakdown of the finalized additions:
 
-## 1. Frontend-Design Skill Acknowledgement
-
-> [!NOTE]
-> I have checked the environment and can confirm that I am adhering to the `<web_application_development>` rules for the agent, which explicitly dictate the use of Vanilla CSS, a dynamic design, and glassmorphism. (No separate custom `frontend-design` skill folder was found in the workspace, so I am falling back onto my built-in design aesthetics rules, which strongly prioritize these exact aesthetics).
-
 ## 2. Unsupported Requirements Field
 
 > [!TIP]
