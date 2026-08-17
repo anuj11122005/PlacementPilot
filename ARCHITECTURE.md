@@ -141,7 +141,8 @@ users(id, email, created_at)
 analyses(id, user_id, resume_id, jd_id, status, created_at)
 resume_chunks(id, analysis_id, text, embedding, section_type)
 jd_chunks(id, analysis_id, text, embedding, section_type)
-analysis_results(id, analysis_id, gap_summary, questions[], confidence_score)
+analysis_results(id, analysis_id, gap_summary, questions[], is_flagged_by_verifier)
+unsupported_requirements(id, analysis_id, jd_chunk_text)
 ```
 
 ## 5. Failure Modes & Handling
