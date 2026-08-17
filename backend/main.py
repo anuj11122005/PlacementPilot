@@ -125,20 +125,22 @@ async def analyze_resume_jd(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to store resume chunks: {e}")
     
-    # 5. JD Chunk Evaluation
+    # 5. JD Chunk Evaluation (with per-requirement splitting)
     gradeable_jd_texts = []
     gradeable_resume_chunks = []
     unsupported_requirements = []
     
     for jc in jd_chunks:
-        # Perform retrieval
         try:
-            res = retriever.search(jc["text"], analysis_id=analysis_id, source="resume", top_k=2)
-            if res["is_confident"]:
-                gradeable_jd_texts.append(jc["text"])
-                gradeable_resume_chunks.extend(res.get("chunks", []))
-            else:
-                unsupported_requirements.append(jc["text"])
+            jd_result = retriever.search_jd_chunk(
+                jc["text"], analysis_id=analysis_id, source="resume", top_k=2
+            )
+            # Collect supported requirements and their resume chunks
+            for sup in jd_result.get("supported", []):
+                gradeable_jd_texts.append(sup["requirement"])
+            gradeable_resume_chunks.extend(jd_result.get("all_confident_chunks", []))
+            # Collect unsupported requirements
+            unsupported_requirements.extend(jd_result.get("unsupported", []))
         except Exception as e:
             logger.error(f"Retrieval failed for JD chunk: {e}")
             unsupported_requirements.append(jc["text"])

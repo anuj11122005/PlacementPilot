@@ -117,3 +117,45 @@ confident-sounding LLM output.
 - Having a single, exact string acts as a contract between the backend and the frontend (Phase 6).
 - The frontend can programmatically detect this exact string to render a specific "missing info" UI state rather than treating it as normal prose.
 - This string is returned universally whenever the retriever confidence fails OR when the LLM deems the retrieved context insufficient.
+
+---
+
+### D9. Per-requirement JD splitting (Phase 6 bug fix)
+
+**Decision:** When a JD chunk contains a comma/and-separated list of
+skills or technologies, split the chunk into individual sub-requirements
+and evaluate each one's retrieval confidence independently. This is a
+regex-based heuristic (Layer 1) in the retriever.
+
+**Why:**
+- A monolithic JD chunk like `"Python, FastAPI, SQL, and Kubernetes"` scores
+  high aggregate cosine similarity (0.62) against a resume that matches 3 of 4
+  skills. The embedding model cannot distinguish that one specific term
+  (Kubernetes) is absent — it only sees overall semantic overlap.
+- Splitting into individual requirements and scoring each one lets
+  `"Kubernetes"` alone fall below the confidence threshold (~0.20–0.30),
+  correctly routing it to `unsupported_requirements`.
+- The heuristic is deliberately conservative: prose-style text without
+  enumerable lists falls through unchanged, and parenthetical groups like
+  `"AWS (EC2, S3, Lambda)"` are preserved as single units.
+
+**Known limitation — Layer 2 deferred:**
+A second layer of defence was considered: instructing the generator to
+perform per-requirement grounding verification (checking that EACH JD
+requirement it responds to has a directly matching resume chunk, not just
+whether the summary text sounds plausible overall). This was deferred
+because:
+1. Layer 1 (regex splitting) directly addresses the identified failure
+   mode — aggregate-similarity masking individual requirement misses.
+2. Layer 2 would add a second LLM call or significantly more complex
+   prompt engineering, with unclear marginal benefit until Layer 1's
+   limits are empirically demonstrated.
+3. The same-model correlation blind-spot (see D5) would apply to Layer 2
+   as well, limiting its value without an orthogonal verifier model.
+
+**If Layer 1 proves insufficient:** The recommended next step is to add
+a per-requirement grounding check in the generation layer that explicitly
+maps each JD requirement to the resume chunk(s) that support it and
+refuses any requirement without a direct match. This should be tracked as
+a follow-up item for Phase 7 hardening.
+
