@@ -18,6 +18,13 @@ starlette==1.6.0         # FastAPI's underlying ASGI framework
 python-multipart==0.0.32 # Required for file upload endpoints (Phase 6)
 
 # --------------------------------------------------
+# Logging, Limits & Middleware (Phase 7)
+# --------------------------------------------------
+asgi-correlation-id==0.3.0
+python-json-logger==2.0.7
+slowapi==0.1.9
+
+# --------------------------------------------------
 # Document parsing (Phase 1)
 # --------------------------------------------------
 pdfplumber==0.11.10      # PDF text extraction

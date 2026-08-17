@@ -9,9 +9,16 @@ import uuid
 import tempfile
 import logging
 from typing import List
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
+
+from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
+from pythonjsonlogger import jsonlogger
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from db.models import Analysis
 from embeddings.store import SessionLocal, Store
@@ -25,6 +32,20 @@ from ingestion.exceptions import ChunkingError
 from schemas import AnalysisResponse, HealthResponse
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logHandler = logging.StreamHandler()
+formatter = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(correlation_id)s %(message)s')
+logHandler.setFormatter(formatter)
+logger.addHandler(logHandler)
+
+class CorrelationIdFilter(logging.Filter):
+    def filter(self, record):
+        record.correlation_id = correlation_id.get()
+        return True
+
+logger.addFilter(CorrelationIdFilter())
+
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="PlacementPilot API",
@@ -32,6 +53,10 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -63,6 +88,9 @@ def startup_event():
         store = Store()
         retriever = HybridRetriever(embedder, store)
         generator = GroundedGenerator(temperature=0.1)
+        logger.info("Startup complete. All components initialized.")
+    except OperationalError as e:
+        logger.error(f"Database connection failed during startup: {e}")
     except Exception as e:
         logger.error(f"Failed to initialize components during startup: {e}")
 
@@ -72,7 +100,9 @@ def health_check():
     return {"status": "ok", "service": "placementpilot-backend"}
 
 @app.post("/analyze", response_model=AnalysisResponse)
+@limiter.limit("100/minute") # High limit to allow eval script to run fully
 async def analyze_resume_jd(
+    request: Request,
     resume: UploadFile = File(...),
     jd_text: str = Form(...),
     db: Session = Depends(get_db)
@@ -82,6 +112,7 @@ async def analyze_resume_jd(
     
     analysis_id_uuid = uuid.uuid4()
     analysis_id = str(analysis_id_uuid)
+    logger.info(f"Starting analysis {analysis_id}. Resume filename: {resume.filename}")
     
     # 1. Parse Resume
     temp_dir = tempfile.gettempdir()
@@ -115,15 +146,23 @@ async def analyze_resume_jd(
         for c in jd_chunks:
             c["chunk_id"] = f"{analysis_id}_{c['chunk_id']}"
             
+        logger.info(f"Chunking complete: {len(resume_chunks)} resume chunks, {len(jd_chunks)} JD chunks.")
+            
     except ChunkingError as e:
-        raise HTTPException(status_code=400, detail=f"Chunking failed: {e}")
+        logger.warning(f"ChunkingError for analysis {analysis_id}: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to process document format. Please ensure it is a valid text-based PDF or DOCX.")
         
     # 4. Embed & Store Resume
     try:
         embedded_resume = embedder.batch_embed(resume_chunks)
         store.insert_chunks(embedded_resume, analysis_id)
+        logger.info(f"Stored {len(embedded_resume)} embedded chunks in Postgres for {analysis_id}.")
+    except OperationalError as e:
+        logger.error(f"Postgres connection error for {analysis_id}: {e}")
+        raise HTTPException(status_code=503, detail="Database connection failed. Please try again later.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to store resume chunks: {e}")
+        logger.error(f"Failed to store resume chunks for {analysis_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal processing error.")
     
     # 5. JD Chunk Evaluation (with per-requirement splitting)
     gradeable_jd_texts = []
@@ -173,9 +212,10 @@ async def analyze_resume_jd(
             improvements = gen_result.get("improvement_suggestions", [])
             questions = gen_result.get("questions", [])
             is_flagged = gen_result.get("is_flagged_by_verifier", False)
+            logger.info(f"Generation complete for {analysis_id}. Flagged: {is_flagged}")
         except Exception as e:
-            logger.error(f"Generation layer error: {e}")
-            raise HTTPException(status_code=500, detail=f"Generation failed: {e}")
+            logger.error(f"Generation layer error for {analysis_id}: {e}")
+            raise HTTPException(status_code=503, detail="LLM Provider is currently unavailable or timed out.")
             
     # 7. Save Analysis to DB
     try:
@@ -191,9 +231,14 @@ async def analyze_resume_jd(
         db.add(new_analysis)
         db.commit()
         db.refresh(new_analysis)
+    except OperationalError as e:
+        db.rollback()
+        logger.error(f"Database operational error saving analysis {analysis_id}: {e}")
+        raise HTTPException(status_code=503, detail="Database connection failed. Please try again later.")
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to save analysis: {e}")
+        logger.error(f"Failed to save analysis {analysis_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save analysis results.")
         
     return new_analysis
 

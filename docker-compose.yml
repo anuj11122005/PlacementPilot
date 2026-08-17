@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: ankane/pgvector
+    container_name: placementpilot-db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: placementpilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: placementpilot-backend
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/placementpilot
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+      - RETRIEVAL_CONFIDENCE_THRESHOLD=0.40
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://localhost:8000
+    container_name: placementpilot-frontend
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_data:
