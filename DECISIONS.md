@@ -159,3 +159,12 @@ maps each JD requirement to the resume chunk(s) that support it and
 refuses any requirement without a direct match. This should be tracked as
 a follow-up item for Phase 7 hardening.
 
+### D8. Verifier Intervention Count as a Diagnostic Signal
+
+**Decision:** Treat the verifier intervention count as a diagnostic signal rather than a rigid target, and preserve the strict few-shot refusal example in the generator prompt even if it reduces verifier interventions.
+
+**Why:**
+- A higher-quality generation model that natively refuses ungrounded queries (thanks to strong prompt engineering like few-shot examples) is a desirable safety outcome.
+- Forcing the model to hallucinate by removing prompt safeguards just to hit a historical baseline of 5 verifier interventions artificially degrades the system's safety and generation quality.
+- The historical baseline count was established when the model was more prone to hallucinating on trap queries. A lower count now honestly reflects the improved natural grounding of the generation model.
+

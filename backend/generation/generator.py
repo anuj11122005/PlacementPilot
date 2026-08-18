@@ -64,7 +64,16 @@ class GroundedGenerator:
             "Output MUST be in valid JSON format with the following keys:\n"
             "- \"gap_summary\": A concise evaluation of how well the candidate meets the requirement based on context.\n"
             "- \"improvement_suggestions\": A list of strings suggesting how the candidate could bridge the gap (based on context).\n"
-            "- \"questions\": A list of 5 to 20 role-specific interview questions to probe this specific requirement.\n"
+            "- \"questions\": A list of 5 to 20 role-specific interview questions to probe this specific requirement.\n\n"
+            "FEW-SHOT EXAMPLE (Refusal):\n"
+            "Query: 'Experience with Kubernetes and Terraform'\n"
+            "Context:\n--- Chunk 1 [summary] ---\nBackend engineer with 5 years experience in Python and Django.\n"
+            "Output:\n"
+            "{\n"
+            f"  \"gap_summary\": \"{self.REFUSAL_STRING}\",\n"
+            "  \"improvement_suggestions\": [],\n"
+            "  \"questions\": []\n"
+            "}"
         )
 
         user_prompt = f"Query: '{query}'\n\nContext:\n{context_block}\n\nEvaluate the query based ONLY on the context."
