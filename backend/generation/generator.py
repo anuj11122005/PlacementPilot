@@ -64,16 +64,7 @@ class GroundedGenerator:
             "Output MUST be in valid JSON format with the following keys:\n"
             "- \"gap_summary\": A concise evaluation of how well the candidate meets the requirement based on context.\n"
             "- \"improvement_suggestions\": A list of strings suggesting how the candidate could bridge the gap (based on context).\n"
-            "- \"questions\": A list of 5 to 20 role-specific interview questions to probe this specific requirement.\n\n"
-            "FEW-SHOT EXAMPLE (Refusal):\n"
-            "Query: 'Experience with Kubernetes and Terraform'\n"
-            "Context:\n--- Chunk 1 [summary] ---\nBackend engineer with 5 years experience in Python and Django.\n"
-            "Output:\n"
-            "{\n"
-            f"  \"gap_summary\": \"{self.REFUSAL_STRING}\",\n"
-            "  \"improvement_suggestions\": [],\n"
-            "  \"questions\": []\n"
-            "}"
+            "- \"questions\": A list of 5 to 20 role-specific interview questions to probe this specific requirement.\n"
         )
 
         user_prompt = f"Query: '{query}'\n\nContext:\n{context_block}\n\nEvaluate the query based ONLY on the context."
@@ -106,6 +97,7 @@ class GroundedGenerator:
                 
                 if not v_result.get("is_grounded", True):
                     logger.warning(f"Verifier flagged ungrounded claim. Reasoning: {v_result.get('reasoning')}")
+                    parsed["is_flagged_by_verifier"] = True
                     corrected = v_result.get("corrected_gap_summary", "").strip()
                     
                     if not corrected or corrected == self.REFUSAL_STRING:
@@ -115,7 +107,6 @@ class GroundedGenerator:
                         questions = []
                     else:
                         gap_summary = corrected
-                        parsed["is_flagged_by_verifier"] = True
             
             return {
                 "gap_summary": gap_summary,

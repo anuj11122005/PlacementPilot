@@ -31,7 +31,7 @@ RETRIEVAL_CONFIDENCE_THRESHOLD = 0.40
 # "short skill/tool name" during requirement splitting.  Items longer
 # than this are treated as prose fragments and the whole text is kept
 # as a single requirement (conservative fall-through).
-_MAX_ITEM_WORDS = 4
+_MAX_ITEM_WORDS = 2
 
 
 # ---------------------------------------------------------------------------
