@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, FileText, CheckCircle, AlertTriangle, ShieldCheck, FileSearch } from 'lucide-react';
+import { CheckCircle, AlertTriangle, ShieldCheck, FileSearch } from 'lucide-react';
 import './index.css';
 
 interface AnalysisResponse {
