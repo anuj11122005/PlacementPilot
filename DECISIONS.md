@@ -168,3 +168,21 @@ a follow-up item for Phase 7 hardening.
 - Forcing the model to hallucinate by removing prompt safeguards just to hit a historical baseline of 5 verifier interventions artificially degrades the system's safety and generation quality.
 - The historical baseline count was established when the model was more prone to hallucinating on trap queries. A lower count now honestly reflects the improved natural grounding of the generation model.
 
+---
+
+### D10. Deployment Platform: Supabase + Google Cloud Run + Vercel
+
+**Decision:** Deploy the database to Supabase, the backend API to Google Cloud Run, and the frontend to Vercel. Railway is no longer used.
+
+**Why each platform:**
+
+- **Supabase (Database):** Provides a managed Postgres instance with pgvector built-in — no custom Docker image or template marketplace workaround needed. `CREATE EXTENSION vector;` works out of the box on every Supabase project. The free tier is generous for a portfolio project (500 MB storage, unlimited API requests).
+- **Google Cloud Run (Backend):** Offers a permanent free tier (2 million requests/month, 360k vCPU-seconds) that doesn't expire after a trial period. Supports our existing Dockerfile with zero changes beyond honoring the `$PORT` env var (which our `uvicorn` start command already handles). Cold starts are the only trade-off, but acceptable for a portfolio demo.
+- **Vercel (Frontend):** Purpose-built for React/Vite SPAs. No cold start on static assets, instant global CDN, and the `VITE_API_URL` env var cleanly points the frontend at the Cloud Run backend URL. The free Hobby tier is sufficient.
+
+**Why not Railway:**
+- Railway's free trial has a one-time $5 credit that expires, with no permanent free tier — unsuitable for a portfolio project that needs to stay live indefinitely.
+- Railway's standard Postgres addon does not include pgvector; you must use a community template, adding fragility.
+- The three-service split (Supabase / Cloud Run / Vercel) gives each layer the best-fit platform rather than forcing everything onto one PaaS.
+
+**Trade-off acknowledged:** Three separate platforms means three dashboards and three sets of credentials to manage, versus Railway's single-project convenience. For a portfolio project that prioritizes long-term uptime at zero cost, this is the right trade.
