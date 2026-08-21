@@ -1,0 +1,28 @@
+{
+  "id": "cc5d8945-7581-45f5-b0a2-c9b1178e7348",
+  "status": "completed",
+  "created_at": "2026-08-21T05:56:05.122679Z",
+  "gap_summary": "Candidate has 5 years of experience building Python microservices.",
+  "improvement_suggestions": [
+    "Specify which Python frameworks or libraries were used (e.g., Flask, FastAPI, Django).",
+    "Describe testing practices and tools employed for Python code (e.g., pytest, coverage).",
+    "Mention performance optimization techniques applied to the microservices.",
+    "Include details on CI/CD pipelines and deployment strategies for Python services.",
+    "Highlight any contributions to open\u2011source Python projects or community involvement."
+  ],
+  "questions": [
+    "Can you describe the architecture of the Python microservices you built and the frameworks you used?",
+    "How do you handle dependency management and virtual environments across multiple microservices?",
+    "What strategies do you employ for testing and ensuring code quality in Python services?",
+    "Explain how you monitor, log, and troubleshoot performance issues in your Python microservices.",
+    "Describe your experience with deploying Python microservices (e.g., containers, orchestration, CI/CD).",
+    "How do you manage concurrency and asynchronous processing in your Python applications?",
+    "Can you give an example of a challenging bug you encountered in a Python microservice and how you resolved it?"
+  ],
+  "is_flagged_by_verifier": true,
+  "unsupported_requirements": [
+    "FastAPI",
+    "SQL",
+    "Kubernetes"
+  ]
+}
