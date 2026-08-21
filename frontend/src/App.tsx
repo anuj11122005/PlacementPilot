@@ -32,7 +32,7 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (loading) {
       setLoadingStep(0);
       interval = setInterval(() => {
