@@ -153,6 +153,8 @@ because:
 3. The same-model correlation blind-spot (see D5) would apply to Layer 2
    as well, limiting its value without an orthogonal verifier model.
 
+*Concrete Evidence of Layer 1 Limit:* In live testing, a prose-style JD ("We are looking for... Python, FastAPI, and Postgres... Kubernetes and Docker") bypassed Layer 1 splitting entirely because it lacked distinct itemized delimiters. As a result, `unsupported_requirements` remained empty even though the LLM's `gap_summary` correctly narrated that Kubernetes and Docker were missing. This empirically demonstrates exactly when Layer 2 (LLM-level grounding verification) would matter in practice.
+
 **If Layer 1 proves insufficient:** The recommended next step is to add
 a per-requirement grounding check in the generation layer that explicitly
 maps each JD requirement to the resume chunk(s) that support it and

@@ -11,6 +11,10 @@ import requests
 import json
 from docx import Document
 
+# Fix Windows console encoding
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
+
 def create_synthetic_resume(path="test_resume.docx"):
     doc = Document()
     doc.add_heading('Alice Johnson', 0)
@@ -33,7 +37,7 @@ def create_synthetic_resume(path="test_resume.docx"):
 
 def main():
     parser = argparse.ArgumentParser(description="Run E2E evaluations against PlacementPilot API.")
-    parser.add_argument("--url", default="http://localhost:8000/analyze", help="URL of the /analyze endpoint")
+    parser.add_argument("--url", default="https://placementpilot-backend-1085553448831.us-central1.run.app/analyze", help="URL of the /analyze endpoint")
     args = parser.parse_args()
 
     print("=" * 80)
@@ -119,8 +123,9 @@ def main():
                 resp.raise_for_status()
                 result = resp.json()
         except Exception as e:
-            failures.append(f"{label} (HTTP Request Failed: {e})")
-            print(f"  [FAIL] HTTP Error: {e}")
+            error_details = getattr(e.response, "text", str(e)) if hasattr(e, "response") else str(e)
+            failures.append(f"{label} (HTTP Request Failed: {error_details})")
+            print(f"  [FAIL] HTTP Error: {e} - {error_details}")
             continue
 
         gap_summary = result.get("gap_summary", "")

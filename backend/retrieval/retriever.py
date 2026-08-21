@@ -188,21 +188,35 @@ def _extract_trailing_skill(text: str) -> str | None:
 def _strip_trailing_context(text: str) -> str:
     """
     Strip trailing context words from the end of a skill name
-    (e.g. "Kubernetes experience." -> "Kubernetes").
+    (e.g. "Kubernetes experience." -> "Kubernetes",
+          "Kubernetes for our platform team." -> "Kubernetes").
     """
+    clean_text = text.strip()
+
+    # Remove any trailing punctuation if it's the end of a sentence
+    clean_text = re.sub(r"[.!?]+$", "", clean_text).strip()
+
+    # Split on common words that introduce a trailing context clause
+    splitters = [
+        r"\bfor\b", r"\bto\b", r"\bin\b", r"\bon\b", r"\bwith\b",
+        r"\band\b", r"\bor\b", r"\bas\b", r"\bwithin\b", r"\bfrom\b",
+        r"\busing\b", r"\bvia\b"
+    ]
+    pattern = "|".join(splitters)
+    
+    parts = re.split(pattern, clean_text, maxsplit=1, flags=re.IGNORECASE)
+    if parts:
+        clean_text = parts[0].strip()
+
     # Common words that immediately follow a skill list in a sentence
     trailing_words = [
         r"\bexperience\.?$", r"\bskills\.?$", r"\bknowledge\.?$", 
         r"\bbackground\.?$", r"\bproficiency\.?$"
     ]
     
-    clean_text = text.strip()
     for pattern in trailing_words:
         clean_text = re.sub(pattern, "", clean_text, flags=re.IGNORECASE).strip()
         
-    # Remove any trailing punctuation if it's the end of a sentence
-    clean_text = re.sub(r"[.!?]+$", "", clean_text).strip()
-    
     return clean_text
 
 
