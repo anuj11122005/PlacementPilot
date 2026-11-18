@@ -67,6 +67,7 @@ app.add_middleware(
         "http://localhost:5173",
         "https://placement-pilot-theta.vercel.app"
     ],
+    allow_origin_regex=r"https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
