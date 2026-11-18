@@ -52,6 +52,11 @@ def test_full_mismatch_short_circuit(mock_pipeline_components, tmp_path):
         "confidence_score": 0.2,
         "metrics": {"top_1_similarity": 0.2, "section_bonus": 0.0, "bm25_bonus": 0.0}
     }
+    mock_retriever.search_jd_chunk.return_value = {
+        "supported": [],
+        "unsupported": ["Unrelated JD text"],
+        "all_confident_chunks": []
+    }
     
     # Create a dummy resume PDF
     dummy_pdf_path = tmp_path / "dummy_resume.pdf"
